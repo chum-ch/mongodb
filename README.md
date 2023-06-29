@@ -20,7 +20,7 @@ The official [MongoDB](https://www.mongodb.com/) driver for Node.js.
 | Contributing             | [CONTRIBUTING.md](https://github.com/mongodb/node-mongodb-native/blob/HEAD/CONTRIBUTING.md)                       |
 | Changelog                | [HISTORY.md](https://github.com/mongodb/node-mongodb-native/blob/HEAD/HISTORY.md)                                 |
 
-# Submodule
+# Usage submodule
 1. ### Adding into repository project.
 - Create a folder's name
   ```
