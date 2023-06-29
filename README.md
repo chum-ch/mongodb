@@ -26,7 +26,11 @@ The official [MongoDB](https://www.mongodb.com/) driver for Node.js.
   ```
   submodule
   ``` 
-- Add this repo inside `submodule`.
+- Go to folder's name `submodule`
+  ```
+  cd submodule
+  ``` 
+- Add `mongodb` inside folder's name `submodule`
     ```bash
     git submodule add https://github.com/chum-ch/mongodb.git
     ```
