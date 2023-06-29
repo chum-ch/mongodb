@@ -21,7 +21,7 @@ The official [MongoDB](https://www.mongodb.com/) driver for Node.js.
 | Changelog                | [HISTORY.md](https://github.com/mongodb/node-mongodb-native/blob/HEAD/HISTORY.md)                                 |
 
 # Usage submodule
-1. ### Adding into repository project.
+1. ### Adding into repository project
 - Create a folder's name
   ```
   submodule
@@ -34,7 +34,7 @@ The official [MongoDB](https://www.mongodb.com/) driver for Node.js.
     ```bash
     git submodule add https://github.com/chum-ch/mongodb.git
     ```
-2. Remove.
+2. Remove
   - Remove folder 
     ```
     rm -rf shared-modules/dynamodb-helper
