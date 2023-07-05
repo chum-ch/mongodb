@@ -9,8 +9,29 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true
 });
 /**
+ * List collection MongoDB
+ * @returns {Promise}
+*/
+const cnLisCollection = function cnLisCollection() {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await client.connect();
+      // const collection = await client.db(db).collection('users').drop()
+      let collection = await client.db(db).listCollections().toArray();
+      if (collection.length > 0) {
+        collection = Object.fromEntries(collection.map(({ name }) => [name, name]));
+      }
+      resolve(collection)
+    } catch (err) {
+      reject({ ErrorMessage: err.message })
+    } finally {
+      await client.close();
+    }
+  })
+}
+/**
  * List datas MongoDB
- * @param {collectionName} collection Collection inside database name.
+ * @param {collectionName} collection Collection inside database name must be lowercase.
  * @returns {Promise}
 */
 const cnListItems = function cnListItems(collectionName) {
@@ -40,7 +61,11 @@ const cnGetItem = function cnGetItem(ID) {
         await client.connect();
         const collection = client.db(db).collection(collectionName[0]);
         const response = await collection.findOne({ [`${collectionName[0].toUpperCase()}_ID`]: ID });
-        resolve(response)
+        if (!response) {
+          throw ({message: `ID ${ID} is not found.`})
+        } else {
+          resolve(response)
+        }
       } else {
         throw ({ message: 'Incorrect ID to get item.' })
       }
@@ -54,7 +79,7 @@ const cnGetItem = function cnGetItem(ID) {
 /**
  * Insert one data MongoDB
  * @param {req} req
- * @param {collectionName} collectionName Name of collection inside database name.
+ * @param {collectionName} collectionName Name of collection inside database name must be lowercase.
  * @returns {Promise}
 */
 const cnInsertOneItem = function cnInsertOneItem(req, collectionName) {
@@ -65,6 +90,7 @@ const cnInsertOneItem = function cnInsertOneItem(req, collectionName) {
         const collection = client.db(db).collection(collectionName);
         req.body = { ...req.body, [`${collectionName.toUpperCase()}_ID`]: `${collectionName}:${uuid}` }
         const result = await collection.insertOne(req.body);
+        await client.connect();
         const response = await collection.findOne({ _id: result.insertedId });
         resolve(response)
       } else {
@@ -92,6 +118,34 @@ const cnUpdateOneItem = function cnUpdateOneItem(req, ID) {
       await collection.updateOne({ [`${collectionName[0].toUpperCase()}_ID`]: ID }, { $set: req.body });
       const response = await collection.findOne({ [`${collectionName[0].toUpperCase()}_ID`]: ID });
       resolve(response)
+    } catch (err) {
+      reject({ ErrorMessage: err.message })
+    } finally {
+      await client.close();
+    }
+  })
+}
+
+/**
+ * 
+ * @param {collectionName} collectionName Collection name to delete all datas
+ * @returns {Promise}
+ */
+
+// My default 
+const cnDeleteAllItem = function cnDeleteAllItem(collectionName) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      await client.connect();
+      const collection = client.db(db).collection(collectionName);
+      await collection.deleteMany({});
+      await client.connect();
+      const result = await collection.find().toArray();
+      if (result.length === 0) {
+        resolve({ message: 'All datas deleted sucessfully.' })
+      } else {
+        throw ({ message: 'All datas is error delete.' })
+      }
     } catch (err) {
       reject({ ErrorMessage: err.message })
     } finally {
@@ -134,7 +188,6 @@ const myDefatul = function myDefatul(collectionName) {
       const result = await collection.insertOne(req.body);
       const response = await collection.findOne({ _id: result.insertedId });
       resolve(response)
-
     } catch (err) {
       reject({ ErrorMessage: err.message })
     } finally {
@@ -142,5 +195,4 @@ const myDefatul = function myDefatul(collectionName) {
     }
   })
 }
-
-module.exports = { cnListItems, cnGetItem, cnInsertOneItem, cnDeleteOneItem, cnUpdateOneItem }
+module.exports = { cnListItems, cnGetItem, cnInsertOneItem, cnDeleteOneItem, cnUpdateOneItem, cnDeleteAllItem, cnLisCollection }
