@@ -37,7 +37,7 @@ The official [MongoDB](https://www.mongodb.com/) driver for Node.js.
 2. Remove
   - Remove folder 
     ```
-    rm -rf shared-modules/dynamodb-helper
+    rm -rf submodule/mongodb
     ```
   - Adding submodule after removed
     ```bash
