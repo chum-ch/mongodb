@@ -1,3 +1,5 @@
+/* eslint-disable no-throw-literal */
+/* eslint-disable no-console */
 /* eslint-disable max-len */
 /* eslint-disable prefer-promise-reject-errors */
 /* eslint-disable no-async-promise-executor */
@@ -5,7 +7,6 @@
 const { MongoClient } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 
-const uuid = uuidv4().replace(/-/g, '');
 const db = 'cn_db';
 const uri = `mongodb+srv://chum:${encodeURIComponent('Chum1@1Noeurn')}@cluster0.ru6ebzh.mongodb.net/cn_db?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
@@ -33,19 +34,27 @@ const cnLisCollection = function cnLisCollection() {
     }
   });
 };
+// cnLisCollection();
 /**
  * List datas MongoDB
- * @param {collectionName} collection Collection inside database name must be lowercase.
+ * @param {collectionName} collectionName Collection inside database name must be lowercase.
+ * @param {parent} parent Parent object to filter.
  * @returns {Promise}
 */
-const cnListItems = function cnListItems(collectionName) {
+const cnListItems = function cnListItems(collectionName, parent = {}) {
   return new Promise(async (resolve, reject) => {
     try {
       await client.connect();
       const collection = client.db(db).collection(collectionName);
-      const result = await collection.find().toArray();
-      resolve(result);
+      let items = [];
+      if (Object.keys(parent).length > 0) {
+        items = await collection.find(parent).toArray();
+      } else {
+        items = await collection.find().toArray();
+      }
+      resolve(items);
     } catch (err) {
+      console.log('List error', err);
       reject({ ErrorMessage: err.message });
     } finally {
       await client.close();
@@ -66,12 +75,12 @@ const cnGetItem = function cnGetItem(ID) {
         const collection = client.db(db).collection(collectionName[0]);
         const response = await collection.findOne({ [`${collectionName[0].toUpperCase()}_ID`]: ID });
         if (!response) {
-          throw (new Error({ message: `ID ${ID} is not found.` }));
+          throw ({ message: `ID ${ID} is not found.` });
         } else {
           resolve(response);
         }
       } else {
-        throw (new Error({ message: 'Incorrect ID to get item.' }));
+        throw ({ message: 'Incorrect ID to get item.' });
       }
     } catch (err) {
       reject({ ErrorMessage: err.message });
@@ -92,19 +101,20 @@ const cnInsertOneItem = function cnInsertOneItem(req, collectionName) {
       if (req.body && Object.keys(req.body).length > 0) {
         await client.connect();
         const collection = client.db(db).collection(collectionName);
-        req.body = { ...req.body, [`${collectionName.toUpperCase()}_ID`]: `${collectionName}:${uuid}` };
-        const result = await collection.insertOne(req.body);
-        await client.connect();
-        const response = await collection.findOne({ _id: result.insertedId });
-        resolve(response);
+        const ID = `${collectionName}:${uuidv4().replace(/-/g, '')}`;
+        req.body = { ...req.body, [`${collectionName.toUpperCase()}_ID`]: ID };
+        await collection.insertOne(req.body);
+        const item = await cnGetItem(ID);
+        resolve(item);
       } else {
-        throw (new Error({ message: 'Required data.' }));
+        throw ({ message: 'Required data.' });
       }
     } catch (err) {
       reject({ ErrorMessage: err.message });
-    } finally {
-      await client.close();
     }
+    // finally {
+    //   await client.close();
+    // }
   });
 };
 /**
@@ -120,13 +130,14 @@ const cnUpdateOneItem = function cnUpdateOneItem(req, ID) {
       const collectionName = ID.split(':');
       const collection = client.db(db).collection(collectionName[0]);
       await collection.updateOne({ [`${collectionName[0].toUpperCase()}_ID`]: ID }, { $set: req.body });
-      const response = await collection.findOne({ [`${collectionName[0].toUpperCase()}_ID`]: ID });
-      resolve(response);
+      const item = await cnGetItem(ID);
+      resolve(item);
     } catch (err) {
       reject({ ErrorMessage: err.message });
-    } finally {
-      await client.close();
     }
+    // finally {
+    //   await client.close();
+    // }
   });
 };
 
@@ -143,18 +154,18 @@ const cnDeleteAllItem = function cnDeleteAllItem(collectionName) {
       await client.connect();
       const collection = client.db(db).collection(collectionName);
       await collection.deleteMany({});
-      await client.connect();
-      const result = await collection.find().toArray();
+      const result = await cnListItems(collectionName);
       if (result.length === 0) {
         resolve({ message: 'All datas deleted sucessfully.' });
       } else {
-        throw (new Error({ message: 'All datas is error delete.' }));
+        throw ({ message: 'All datas is error delete.' });
       }
     } catch (err) {
       reject({ ErrorMessage: err.message });
-    } finally {
-      await client.close();
     }
+    // finally {
+    //   await client.close();
+    // }
   });
 };
 
@@ -173,7 +184,7 @@ const cnDeleteOneItem = function cnDeleteOneItem(ID) {
       if (result.deletedCount !== 0) {
         resolve({ message: `Item with ID ${ID} was deleted.` });
       } else {
-        throw (new Error({ message: `ID ${ID} not found to delete.` }));
+        throw ({ message: `ID ${ID} not found to delete.` });
       }
     } catch (err) {
       reject({ ErrorMessage: err.message });
