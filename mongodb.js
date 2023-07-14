@@ -8,7 +8,8 @@ const { MongoClient } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 
 const db = 'cn_db';
-const uri = `mongodb+srv://chum:${encodeURIComponent('Chum1@1Noeurn')}@cluster0.ru6ebzh.mongodb.net/cn_db?retryWrites=true&w=majority`;
+const uri = 'mongodb://localhost:27017';
+// const uri = `mongodb+srv://chum:${encodeURIComponent('Chum1@1Noeurn')}@cluster0.ru6ebzh.mongodb.net/cn_db?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
