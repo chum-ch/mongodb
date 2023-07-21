@@ -8,12 +8,15 @@ const { MongoClient } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 
 const db = 'cn_db';
-const uri = 'mongodb://localhost:27017';
+const uri = `mongodb://localhost:27017/${db}`;
+const maxPoolSize = 10;
 // const uri = `mongodb+srv://chum:${encodeURIComponent('Chum1@1Noeurn')}@cluster0.ru6ebzh.mongodb.net/cn_db?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
+  maxPoolSize,
 });
+client.connect();
 /**
  * List collection MongoDB
  * @returns {Promise}
@@ -30,9 +33,10 @@ const cnLisCollection = function cnLisCollection() {
       resolve(collection);
     } catch (err) {
       reject({ ErrorMessage: err.message });
-    } finally {
-      await client.close();
     }
+    // finally {
+    //   await client.close();
+    // }
   });
 };
 // cnLisCollection();
@@ -42,13 +46,15 @@ const cnLisCollection = function cnLisCollection() {
  * @param {parent} parent Parent object to filter.
  * @returns {Promise}
 */
-const cnListItems = function cnListItems(collectionName, parent = {}) {
+const cnListItems = function cnListItems(req, collectionName, parent = {}) {
   return new Promise(async (resolve, reject) => {
     try {
-      await client.connect();
+      // await client.connect();
       const collection = client.db(db).collection(collectionName);
       let items = [];
-      if (Object.keys(parent).length > 0) {
+      if (Object.keys(req.query).length > 0) {
+        items = await collection.find(req.query).toArray();
+      } else if (Object.keys(parent).length > 0) {
         items = await collection.find(parent).toArray();
       } else {
         items = await collection.find().toArray();
@@ -57,9 +63,10 @@ const cnListItems = function cnListItems(collectionName, parent = {}) {
     } catch (err) {
       console.log('List error', err);
       reject({ ErrorMessage: err.message });
-    } finally {
-      await client.close();
     }
+    // finally {
+    //   await client.close();
+    // }
   });
 };
 /**
@@ -85,9 +92,10 @@ const cnGetItem = function cnGetItem(ID) {
       }
     } catch (err) {
       reject({ ErrorMessage: err.message });
-    } finally {
-      await client.close();
     }
+    // finally {
+    //   await client.close();
+    // }
   });
 };
 /**
@@ -149,13 +157,13 @@ const cnUpdateOneItem = function cnUpdateOneItem(req, ID) {
  */
 
 // My default
-const cnDeleteAllItem = function cnDeleteAllItem(collectionName) {
+const cnDeleteAllItem = function cnDeleteAllItem(req, collectionName) {
   return new Promise(async (resolve, reject) => {
     try {
       await client.connect();
       const collection = client.db(db).collection(collectionName);
       await collection.deleteMany({});
-      const result = await cnListItems(collectionName);
+      const result = await cnListItems(req, collectionName);
       if (result.length === 0) {
         resolve({ message: 'All datas deleted sucessfully.' });
       } else {
@@ -189,9 +197,10 @@ const cnDeleteOneItem = function cnDeleteOneItem(ID) {
       }
     } catch (err) {
       reject({ ErrorMessage: err.message });
-    } finally {
-      await client.close();
     }
+    // finally {
+    //   await client.close();
+    // }
   });
 };
 

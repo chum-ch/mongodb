@@ -155,7 +155,7 @@ mongosh admin --eval "db.shutdownServer()"
  * Shutdown for MongoDB Community Server 5.0 and below:
 
 ```bash
-mongo admin --eval "db.shutdownServer()"
+mongosh admin --eval "db.shutdownServer()"
 ```
 
 ## Uninstalling the mongodb-community Server
