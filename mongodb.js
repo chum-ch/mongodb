@@ -8,7 +8,7 @@ const { MongoClient } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 
 const db = 'cn_db';
-const uri = `mongodb://localhost:27017/${db}`;
+const uri = `mongodb://127.0.0.1:27017/${db}`;
 const maxPoolSize = 10;
 // const uri = `mongodb+srv://chum:${encodeURIComponent('Chum1@1Noeurn')}@cluster0.ru6ebzh.mongodb.net/cn_db?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
@@ -53,12 +53,13 @@ const cnListItems = function cnListItems(req, collectionName, parent = {}) {
       const collection = client.db(db).collection(collectionName);
       let items = [];
       if (Object.keys(req.query).length > 0) {
-        items = await collection.find(req.query).toArray();
+        items = collection.find(req.query).sort({ CreatedAt: -1 });
       } else if (Object.keys(parent).length > 0) {
-        items = await collection.find(parent).toArray();
+        items = collection.find(parent).sort({ CreatedAt: -1 });
       } else {
-        items = await collection.find().toArray();
+        items = collection.find().sort({ CreatedAt: -1 });
       }
+      items = await items.toArray();
       resolve(items);
     } catch (err) {
       console.log('List error', err);
@@ -111,7 +112,7 @@ const cnInsertOneItem = function cnInsertOneItem(req, collectionName) {
         await client.connect();
         const collection = client.db(db).collection(collectionName);
         const ID = `${collectionName}:${uuidv4().replace(/-/g, '')}`;
-        req.body = { ...req.body, [`${collectionName.toUpperCase()}_ID`]: ID };
+        req.body = { ...req.body, [`${collectionName.toUpperCase()}_ID`]: ID, CreatedAt: new Date() };
         await collection.insertOne(req.body);
         const item = await cnGetItem(ID);
         resolve(item);
@@ -138,6 +139,7 @@ const cnUpdateOneItem = function cnUpdateOneItem(req, ID) {
       await client.connect();
       const collectionName = ID.split(':');
       const collection = client.db(db).collection(collectionName[0]);
+      req.body = { ...req.body, UpdatedAt: new Date() };
       await collection.updateOne({ [`${collectionName[0].toUpperCase()}_ID`]: ID }, { $set: req.body });
       const item = await cnGetItem(ID);
       resolve(item);
