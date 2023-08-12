@@ -26,20 +26,17 @@ const cnLisCollection = function cnLisCollection() {
     try {
       await client.connect();
       // const collection = await client.db(db).collection('users').drop()
-      let collection = await client.db(db).listCollections().toArray();
-      if (collection.length > 0) {
-        collection = Object.fromEntries(collection.map(({ name }) => [name, name]));
+      let listCollections = await client.db(db).listCollections().toArray();
+      if (listCollections.length > 0) {
+        listCollections = Object.fromEntries(listCollections.map(({ name }) => [name, name]));
       }
-      resolve(collection);
+      resolve(listCollections);
     } catch (err) {
       reject({ ErrorMessage: err.message });
     }
-    // finally {
-    //   await client.close();
-    // }
   });
 };
-// cnLisCollection();
+
 /**
  * List datas MongoDB
  * @param {collectionName} collectionName Collection inside database name must be lowercase.
@@ -65,9 +62,6 @@ const cnListItems = function cnListItems(req, collectionName, parent = {}) {
       console.log('List error', err);
       reject({ ErrorMessage: err.message });
     }
-    // finally {
-    //   await client.close();
-    // }
   });
 };
 /**
@@ -94,9 +88,6 @@ const cnGetItem = function cnGetItem(ID) {
     } catch (err) {
       reject({ ErrorMessage: err.message });
     }
-    // finally {
-    //   await client.close();
-    // }
   });
 };
 /**
@@ -122,9 +113,6 @@ const cnInsertOneItem = function cnInsertOneItem(req, collectionName) {
     } catch (err) {
       reject({ ErrorMessage: err.message });
     }
-    // finally {
-    //   await client.close();
-    // }
   });
 };
 /**
@@ -206,7 +194,8 @@ const cnDeleteOneItem = function cnDeleteOneItem(ID) {
   });
 };
 
-// My default
+
+// // My default
 // const myDefatul = function myDefatul(collectionName) {
 //   return new Promise(async (resolve, reject) => {
 //     try {
