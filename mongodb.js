@@ -21,7 +21,7 @@ client.connect();
  * List collection MongoDB
  * @returns {Promise}
 */
-const cnLisCollection = function cnLisCollection() {
+const cnListCollection = function cnListCollection() {
   return new Promise(async (resolve, reject) => {
     try {
       await client.connect();
@@ -46,7 +46,7 @@ const cnLisCollection = function cnLisCollection() {
 const cnListItems = function cnListItems(req, collectionName, parent = {}) {
   return new Promise(async (resolve, reject) => {
     try {
-      // await client.connect();
+      await client.connect();
       const collection = client.db(db).collection(collectionName);
       let items = [];
       if (Object.keys(req.query).length > 0) {
@@ -134,9 +134,6 @@ const cnUpdateOneItem = function cnUpdateOneItem(req, ID) {
     } catch (err) {
       reject({ ErrorMessage: err.message });
     }
-    // finally {
-    //   await client.close();
-    // }
   });
 };
 
@@ -145,8 +142,6 @@ const cnUpdateOneItem = function cnUpdateOneItem(req, ID) {
  * @param {collectionName} collectionName Collection name to delete all datas
  * @returns {Promise}
  */
-
-// My default
 const cnDeleteAllItem = function cnDeleteAllItem(req, collectionName) {
   return new Promise(async (resolve, reject) => {
     try {
@@ -162,9 +157,6 @@ const cnDeleteAllItem = function cnDeleteAllItem(req, collectionName) {
     } catch (err) {
       reject({ ErrorMessage: err.message });
     }
-    // finally {
-    //   await client.close();
-    // }
   });
 };
 
@@ -188,15 +180,12 @@ const cnDeleteOneItem = function cnDeleteOneItem(ID) {
     } catch (err) {
       reject({ ErrorMessage: err.message });
     }
-    // finally {
-    //   await client.close();
-    // }
   });
 };
 
 
 // // My default
-// const myDefatul = function myDefatul(collectionName) {
+// const myDefault = function myDefault(collectionName) {
 //   return new Promise(async (resolve, reject) => {
 //     try {
 //       await client.connect();
@@ -212,5 +201,5 @@ const cnDeleteOneItem = function cnDeleteOneItem(ID) {
 //   });
 // };
 module.exports = {
-  cnListItems, cnGetItem, cnInsertOneItem, cnDeleteOneItem, cnUpdateOneItem, cnDeleteAllItem, cnLisCollection,
+  cnListItems, cnGetItem, cnInsertOneItem, cnDeleteOneItem, cnUpdateOneItem, cnDeleteAllItem, cnListCollection,
 };
