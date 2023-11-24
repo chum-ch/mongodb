@@ -38,7 +38,7 @@ const cnListCollection = function cnListCollection() {
 };
 
 /**
- * List datas MongoDB
+ * List data MongoDB
  * @param {collectionName} collectionName Collection inside database name must be lowercase.
  * @param {parent} parent Parent object to filter.
  * @returns {Promise}
@@ -139,7 +139,7 @@ const cnUpdateOneItem = function cnUpdateOneItem(req, ID) {
 
 /**
  *
- * @param {collectionName} collectionName Collection name to delete all datas
+ * @param {collectionName} collectionName Collection name to delete all data
  * @returns {Promise}
  */
 const cnDeleteAllItem = function cnDeleteAllItem(req, collectionName) {
@@ -150,9 +150,9 @@ const cnDeleteAllItem = function cnDeleteAllItem(req, collectionName) {
       await collection.deleteMany({});
       const result = await cnListItems(req, collectionName);
       if (result.length === 0) {
-        resolve({ message: 'All datas deleted sucessfully.' });
+        resolve({ message: 'All data deleted successfully.' });
       } else {
-        throw ({ message: 'All datas is error delete.' });
+        throw ({ message: 'All data is error delete.' });
       }
     } catch (err) {
       reject({ ErrorMessage: err.message });
@@ -182,7 +182,6 @@ const cnDeleteOneItem = function cnDeleteOneItem(ID) {
     }
   });
 };
-
 
 // // My default
 // const myDefault = function myDefault(collectionName) {
