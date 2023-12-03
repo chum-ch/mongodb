@@ -4,7 +4,7 @@
 /* eslint-disable prefer-promise-reject-errors */
 /* eslint-disable no-async-promise-executor */
 
-const { MongoClient } = require('mongodb');
+const { MongoClient, ServerApiVersion } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 
 const db = 'cn_db';
@@ -13,9 +13,14 @@ const maxPoolSize = 10;
 // const uri = `mongodb+srv://chum:${encodeURIComponent('Chum1@1Noeurn')}@cluster0.ru6ebzh.mongodb.net/cn_db?retryWrites=true&w=majority`;
 const uri = `mongodb+srv://chum:${encodeURIComponent('yoeurnchum1999')}@cluster0.8sjctgv.mongodb.net/cn_db?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
+  // useNewUrlParser: true,
+  // useUnifiedTopology: true,
   maxPoolSize,
+  serverApi: {
+    version: ServerApiVersion.v1,
+    strict: true,
+    deprecationErrors: true,
+  }
 });
 client.connect();
 /**
@@ -200,6 +205,9 @@ const cnDeleteOneItem = function cnDeleteOneItem(ID) {
 //     }
 //   });
 // };
+// cnListCollection().then((res) => {
+//   console.log(res);
+// })
 module.exports = {
   cnListItems, cnGetItem, cnInsertOneItem, cnDeleteOneItem, cnUpdateOneItem, cnDeleteAllItem, cnListCollection,
 };
