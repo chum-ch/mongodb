@@ -8,9 +8,9 @@ const { MongoClient } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
 
 const db = 'cn_db';
-const uri = `mongodb://127.0.0.1:27017/${db}`;
+// const uri = `mongodb://127.0.0.1:27017/${db}`;
 const maxPoolSize = 10;
-// const uri = `mongodb+srv://chum:${encodeURIComponent('Chum1@1Noeurn')}@cluster0.ru6ebzh.mongodb.net/cn_db?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://chum:${encodeURIComponent('Chum1@1Noeurn')}@cluster0.ru6ebzh.mongodb.net/cn_db?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, {
   useNewUrlParser: true,
   useUnifiedTopology: true,
