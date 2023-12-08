@@ -38,7 +38,7 @@ const cnListCollection = function cnListCollection() {
       }
       resolve(listCollections);
     } catch (err) {
-      reject({ ErrorMessage: err.message });
+      reject(err);
     }
   });
 };
@@ -65,8 +65,7 @@ const cnListItems = function cnListItems(req, collectionName, parent = {}) {
       items = await items.toArray();
       resolve(items);
     } catch (err) {
-      console.log('List error', err);
-      reject({ ErrorMessage: err.message });
+      reject(err);
     }
   });
 };
@@ -117,7 +116,7 @@ const cnInsertOneItem = function cnInsertOneItem(req, collectionName) {
         throw ({ message: 'Required data.' });
       }
     } catch (err) {
-      reject({ ErrorMessage: err.message });
+      reject(err);
     }
   });
 };
@@ -138,7 +137,7 @@ const cnUpdateOneItem = function cnUpdateOneItem(req, ID) {
       const item = await cnGetItem(ID);
       resolve(item);
     } catch (err) {
-      reject({ ErrorMessage: err.message });
+      reject(err);
     }
   });
 };
@@ -161,7 +160,7 @@ const cnDeleteAllItem = function cnDeleteAllItem(req, collectionName) {
         throw ({ message: 'All data is error delete.' });
       }
     } catch (err) {
-      reject({ ErrorMessage: err.message });
+      reject(err);
     }
   });
 };
@@ -184,7 +183,7 @@ const cnDeleteOneItem = function cnDeleteOneItem(ID) {
         throw ({ message: `ID ${ID} not found to delete.` });
       }
     } catch (err) {
-      reject({ ErrorMessage: err.message });
+      reject(err);
     }
   });
 };
