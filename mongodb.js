@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable no-throw-literal */
 /* eslint-disable no-console */
 /* eslint-disable max-len */
@@ -6,6 +8,7 @@
 
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const { v4: uuidv4 } = require('uuid');
+const { CustomError, KeyError } = require('../handle-error/index');
 
 const db = 'cn_db';
 // const uri = `mongodb://127.0.0.1:27017/${db}`;
@@ -35,7 +38,7 @@ const cnListCollection = function cnListCollection() {
       let listCollections = await client.db(db).listCollections().toArray();
       if (listCollections.length > 0) {
         listCollections = Object.fromEntries(
-          listCollections.map(({ name }) => [name, name])
+          listCollections.map(({ name }) => [name, name]),
         );
       }
       resolve(listCollections);
@@ -79,7 +82,7 @@ const cnListItems = function cnListItems(req, collectionName, parent = {}) {
 const cnGetItem = function cnGetItem(ID) {
   return new Promise(async (resolve, reject) => {
     try {
-      const collectionName = ID.split(":");
+      const collectionName = ID.split(':');
       if (ID && collectionName.length === 2) {
         await client.connect();
         const collection = client.db(db).collection(collectionName[0]);
@@ -87,15 +90,19 @@ const cnGetItem = function cnGetItem(ID) {
           [`${collectionName[0].toUpperCase()}_ID`]: ID,
         });
         if (!response) {
-          throw { message: `ID ${ID} is not found.` };
+          throw new CustomError(
+            { key: KeyError.ResourceNotFound, message: `ID ${ID} is not found.` },
+          );
         } else {
           resolve(response);
         }
       } else {
-        throw { message: "Incorrect ID to get item." };
+        throw new CustomError(
+          { key: KeyError.InputValidation, message: 'Incorrect ID to get item.' },
+        );
       }
     } catch (err) {
-      reject({ ErrorMessage: err.message });
+      reject(err);
     }
   });
 };
@@ -111,7 +118,7 @@ const cnInsertOneItem = function cnInsertOneItem(req, collectionName) {
       if (req.body && Object.keys(req.body).length > 0) {
         await client.connect();
         const collection = client.db(db).collection(collectionName);
-        const ID = `${collectionName}:${uuidv4().replace(/-/g, "")}`;
+        const ID = `${collectionName}:${uuidv4().replace(/-/g, '')}`;
         req.body = {
           ...req.body,
           [`${collectionName.toUpperCase()}_ID`]: ID,
@@ -121,7 +128,7 @@ const cnInsertOneItem = function cnInsertOneItem(req, collectionName) {
         const item = await cnGetItem(ID);
         resolve(item);
       } else {
-        throw { message: "Required data." };
+        throw new CustomError({ key: KeyError.InputValidation, message: 'Required data.' });
       }
     } catch (err) {
       reject(err);
@@ -138,12 +145,12 @@ const cnUpdateOneItem = function cnUpdateOneItem(req, ID) {
   return new Promise(async (resolve, reject) => {
     try {
       await client.connect();
-      const [collectionName] = ID.split(":");
+      const [collectionName] = ID.split(':');
       const collection = client.db(db).collection(collectionName);
       req.body = { ...req.body, UpdatedAt: new Date() };
       await collection.updateOne(
         { [`${collectionName.toUpperCase()}_ID`]: ID },
-        { $set: req.body }
+        { $set: req.body },
       );
       const item = await cnGetItem(ID);
       // await cnUpdateRelatedResources(req, collectionName, ID);
@@ -167,9 +174,9 @@ const cnDeleteAllItem = function cnDeleteAllItem(req, collectionName) {
       await collection.deleteMany({});
       const result = await cnListItems(req, collectionName);
       if (result.length === 0) {
-        resolve({ message: "All data deleted successfully." });
+        resolve({ message: 'All data deleted successfully.' });
       } else {
-        throw { message: "All data is error delete." };
+        throw new CustomError({ key: KeyError.ResourceNotFound, message: 'All data is error delete.' });
       }
     } catch (err) {
       reject(err);
@@ -186,7 +193,7 @@ const cnDeleteOneItem = function cnDeleteOneItem(ID) {
   return new Promise(async (resolve, reject) => {
     try {
       await client.connect();
-      const collectionName = ID.split(":");
+      const collectionName = ID.split(':');
       const collection = client.db(db).collection(collectionName[0]);
       const result = await collection.deleteOne({
         [`${collectionName[0].toUpperCase()}_ID`]: ID,
@@ -194,7 +201,7 @@ const cnDeleteOneItem = function cnDeleteOneItem(ID) {
       if (result.deletedCount !== 0) {
         resolve({ message: `Item with ID ${ID} was deleted.` });
       } else {
-        throw { message: `ID ${ID} not found to delete.` };
+        throw new CustomError({ key: KeyError.ResourceNotFound, message: `ID ${ID} not found to delete.` });
       }
     } catch (err) {
       reject(err);
@@ -206,12 +213,12 @@ const cnDeleteOneItem = function cnDeleteOneItem(ID) {
  *
  */
 function findObjectsRecursive(obj, condition, result = []) {
-  if (typeof obj !== "object" || obj === null) {
+  if (typeof obj !== 'object' || obj === null) {
     return;
   }
 
   if (condition(obj)) {
-    console.log("obj", obj);
+    console.log('obj', obj);
     result.push(obj);
   }
 
@@ -221,7 +228,6 @@ function findObjectsRecursive(obj, condition, result = []) {
       findObjectsRecursive(value, condition, result);
     }
   }
-
   return result;
 }
 
@@ -231,21 +237,20 @@ function findObjectsRecursive(obj, condition, result = []) {
 const cnUpdateRelatedResources = function cnUpdateRelatedResources(
   req,
   collectionName,
-  ID
+  ID,
 ) {
   return new Promise(async (resolve, reject) => {
     try {
       await client.connect();
       const collection = await cnListCollection();
       delete req.query;
-      for (let keyCollection in collection) {
+      for (const keyCollection in collection) {
         if (keyCollection !== collectionName) {
           const collectionItem = await cnListItems(req, keyCollection);
-          const condition = (obj) =>
-            obj.Id === ID;
+          const condition = (obj) => obj.Id === ID;
           const matchingObjects = findObjectsRecursive(
             collectionItem,
-            condition
+            condition,
           );
           // console.log('matchingObjects', matchingObjects);
         }
